@@ -1,73 +1,112 @@
-# Welcome to your Lovable project
+# 🚀 Resume Reviver
 
-## Project info
+**AI Career Assistant for Tailored Resumes, Cover Letters & Interview Prep — with a crazy-smooth UX and premium aesthetic.**  
+Built with 💜 for the [3percentclub Hackathon](https://www.the3percentmovement.com/).
 
-**URL**: https://lovable.dev/projects/0e4dcf46-5346-4452-8cdd-7f692b925222
+---
 
-## How can I edit this code?
+## ✨ Overview
 
-There are several ways of editing your application.
+**Resume Reviver** is a real-world, AI-powered application that empowers job seekers — especially those from underrepresented communities — to create customized job applications that stand out.  
 
-**Use Lovable**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/0e4dcf46-5346-4452-8cdd-7f692b925222) and start prompting.
 
-Changes made via Lovable will be committed automatically to this repo.
+## 💡 Features
 
-**Use your preferred IDE**
+| Feature | Description |
+|--------|-------------|
+| 📄 **Resume Upload** | Upload a `.pdf`, `.docx`, or paste text directly |
+| 📋 **Job Description Input** | Paste a job listing or URL |
+| 🤖 **Grok Resume Tailoring** | Uses Grok AI to rewrite resume tailored to the job |
+| ✍️ **Cover Letter Generator** | Personalized letters using company, role, and tone selection |
+| 🎤 **Interview Coach** | Smart interview Q&A with voice feedback powered by Grok |
+| 📥 **Downloadable Pack** | Export polished resume, cover letter, and prep docs as PDF |
+| 🎨 **Premium UI** | Clean, animated, responsive UI with emotional design focus |
+| ♿ **Accessibility-First** | Built with inclusive design principles (contrast, keyboard support, tone control) |
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🧠 How It Works
 
-Follow these steps:
+### 1. Upload Inputs
+- User uploads resume (PDF/DOCX/text)
+- Pastes in job description or job URL
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### 2. Resume Tailoring (Powered by Grok AI)
+- Grok analyzes job description + resume
+- Rewrites bullet points and summary to match keywords
+- Optimized for ATS + customized tone (formal, startup, etc.)
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 3. Cover Letter Generation
+- Grok generates a customized letter with:
+  - Job title, company name, and key highlights
+  - Style options: formal, assertive, conversational
 
-# Step 3: Install the necessary dependencies.
-npm i
+### 4. Interview Preparation
+- App generates 5–10 targeted questions
+- Uses resume and job post context to create model answers
+- Optional: voice input for answer practice + feedback from Grok
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+---
 
-**Edit a file directly in GitHub**
+## 🖼️ UX + Design Aesthetic
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- Fonts: Satoshi, Inter, or Space Grotesk  
+- Color Palette: Midnight Blue 🌌 · Electric Violet 🔮 · Soft White 🌟  
+- Design Vibe: Modern LinkedIn × Midjourney UI × Apple minimalism  
+- Animations: Subtle Lottie/CSS transitions + glowing AI effects  
+- Components: 
+  - Before/After resume slider  
+  - Chat-style interview practice  
+  - Animated upload and AI response stages  
 
-**Use GitHub Codespaces**
+---
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🧑‍💻 Tech Stack
 
-## What technologies are used for this project?
+- **Frontend:** React + TailwindCSS
+- **Backend:** Next.js (with API routes)
+- **AI Engine:** Grok AI (via xAI) – resume rewriting, letter generation, interview Q&A
+- **Voice Mode:** Whisper (for transcription) + Grok feedback
+- **PDF Export:** `html2pdf.js` or custom HTML-to-PDF conversion
+- **Hosting:** Vercel (preferred), fallback: Netlify
 
-This project is built with:
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🔐 Privacy & Accessibility
 
-## How can I deploy this project?
+- 🔒 **No Data Stored by Default:** Resumes are not saved unless explicitly downloaded
+- 🎙️ **Tone Selector:** Choose tone (formal, warm, bold, etc.)
+- ♿ **Built for All Users:** Screen reader compatible, keyboard nav, clear contrast
 
-Simply open [Lovable](https://lovable.dev/projects/0e4dcf46-5346-4452-8cdd-7f692b925222) and click on Share -> Publish.
+---
 
-## Can I connect a custom domain to my Lovable project?
+## 🚧 Known Issues / Limitations
 
-Yes, you can!
+- Voice feedback is beta and may vary based on browser/device
+- Cover letter personalization works best with detailed résumés
+- Grok API usage may be limited without full access to xAI integration (future enhancement)
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+---
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 🏆 Submission Info
+
+- **Team Size:** [Insert your team size]
+- **Hackathon Track:** Vibe Coding for Social Impact
+- **Theme:** Equitable access to high-quality career tools
+- **Demo Video:** [Insert YouTube or Loom video link]
+- **Live App:** [Insert deployed app link]
+- **Contact:** [Your email or Twitter/X handle]
+
+---
+
+## 🙌 Credits
+
+Created by [Your Name or Team]  
+Powered by **Grok AI** via xAI  
+Built at the **3percentclub Hackathon 2025** 🧠💼
+
+---
+
+> 💡 *“Everyone deserves the confidence to apply for the job they want — not just the job they think they can get.”*
+

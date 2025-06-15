@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 interface AIProcessorProps {
   resume: string;
   jobDescription: string;
-  onComplete: (tailoredResume: string, coverLetter: string, interviewQuestions: Array<{question: string, answer: string}>) => void;
+  onComplete: (tailoredResume: string, coverLetter: string, interviewQuestions: Array<{ question: string, answer: string }>) => void;
   onError: (error: string) => void;
 }
 
@@ -29,7 +29,7 @@ const AIProcessor = ({ resume, jobDescription, onComplete, onError }: AIProcesso
     },
     {
       icon: MessageSquare,
-      title: "Generating Cover Letter", 
+      title: "Generating Cover Letter",
       description: "Creating a personalized cover letter that highlights your relevant experience"
     },
     {
@@ -39,42 +39,45 @@ const AIProcessor = ({ resume, jobDescription, onComplete, onError }: AIProcesso
     }
   ];
 
+  // Delay helper between calls
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
   useEffect(() => {
     const processWithAI = async () => {
       try {
         console.log('Starting AI processing...');
-        
-        // Step 1: Analyze (just for UX, no actual API call needed)
         setCurrentStep(0);
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await delay(2000); // UX-only fake "Analyzing"
 
-        // Step 2: Tailor Resume
+        // Step 1: Tailor Resume
         setCurrentStep(1);
         console.log('Tailoring resume...');
         const resumePrompt = createResumePrompt(resume, jobDescription);
         const tailoredResume = await callOpenAI(resumePrompt);
         console.log('Resume tailored successfully');
 
-        // Step 3: Generate Cover Letter
+        await delay(1500); // help avoid rate limits
+
+        // Step 2: Generate Cover Letter
         setCurrentStep(2);
         console.log('Generating cover letter...');
         const coverLetterPrompt = createCoverLetterPrompt(resume, jobDescription);
         const coverLetter = await callOpenAI(coverLetterPrompt);
         console.log('Cover letter generated successfully');
 
-        // Step 4: Generate Interview Questions
+        await delay(1500); // help avoid rate limits
+
+        // Step 3: Generate Interview Questions
         setCurrentStep(3);
         console.log('Generating interview questions...');
         const questionsPrompt = createInterviewQuestionsPrompt(jobDescription, resume);
         const questionsResponse = await callOpenAI(questionsPrompt);
-        
-        // Parse JSON response
+
         let interviewQuestions;
         try {
           interviewQuestions = JSON.parse(questionsResponse);
         } catch (parseError) {
-          console.log('Failed to parse JSON, using fallback questions');
-          // Fallback if JSON parsing fails
+          console.warn('Failed to parse AI response as JSON. Using fallback.');
           interviewQuestions = [
             {
               question: "Tell me about yourself and your relevant experience.",
@@ -88,17 +91,18 @@ const AIProcessor = ({ resume, jobDescription, onComplete, onError }: AIProcesso
         }
 
         console.log('Interview questions generated successfully');
-
         setIsProcessing(false);
+
         setTimeout(() => {
           onComplete(tailoredResume, coverLetter, interviewQuestions);
         }, 1000);
 
-      } catch (error) {
-        console.error('AI processing error:', error);
-        setError(error instanceof Error ? error.message : 'An unexpected error occurred');
+      } catch (err: any) {
+        const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+        console.error('AI processing error:', message);
+        setError(message);
         setIsProcessing(false);
-        onError(error instanceof Error ? error.message : 'AI processing failed');
+        onError(message);
       }
     };
 
@@ -109,24 +113,16 @@ const AIProcessor = ({ resume, jobDescription, onComplete, onError }: AIProcesso
     setError(null);
     setCurrentStep(0);
     setIsProcessing(true);
-    // The useEffect will re-run the processing
   };
 
   if (error) {
     return (
       <div className="max-w-3xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
           <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-red-400" />
           <h2 className="text-2xl font-bold text-white mb-4">Processing Failed</h2>
           <p className="text-gray-300 mb-6">{error}</p>
-          <Button
-            onClick={retry}
-            className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600"
-          >
+          <Button onClick={retry} className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600">
             Try Again
           </Button>
         </motion.div>
@@ -136,37 +132,23 @@ const AIProcessor = ({ resume, jobDescription, onComplete, onError }: AIProcesso
 
   return (
     <div className="max-w-3xl mx-auto">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-12"
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
         <div className="relative">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-            className="w-20 h-20 mx-auto mb-6"
-          >
+          <motion.div animate={{ rotate: 360 }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }} className="w-20 h-20 mx-auto mb-6">
             <Sparkles className="w-20 h-20 text-purple-400" />
           </motion.div>
-          <motion.div
-            className="absolute inset-0 w-20 h-20 mx-auto rounded-full bg-purple-500/20 blur-xl"
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
+          <motion.div className="absolute inset-0 w-20 h-20 mx-auto rounded-full bg-purple-500/20 blur-xl" animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }} />
         </div>
         <h2 className="text-3xl font-bold text-white mb-4">AI is Working Its Magic</h2>
-        <p className="text-gray-300 text-lg">
-          Real AI is analyzing your resume and tailoring it for the perfect match
-        </p>
+        <p className="text-gray-300 text-lg">Real AI is analyzing your resume and tailoring it for the perfect match</p>
       </motion.div>
 
       <div className="space-y-6">
         {processingSteps.map((step, index) => {
           const Icon = step.icon;
           const isActive = index === currentStep;
-          const isCompleted = index < currentStep || !isProcessing;
-          
+          const isCompleted = index < currentStep || (!isProcessing && !error);
+
           return (
             <motion.div
               key={index}
@@ -188,52 +170,30 @@ const AIProcessor = ({ resume, jobDescription, onComplete, onError }: AIProcesso
                   ? 'bg-green-500/20 text-green-400'
                   : 'bg-slate-700 text-gray-400'
               }`}>
-                <motion.div
-                  animate={isActive ? { rotate: [0, 360] } : {}}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                >
+                <motion.div animate={isActive ? { rotate: [0, 360] } : {}} transition={{ duration: 2, repeat: Infinity, ease: "linear" }}>
                   <Icon className="w-6 h-6" />
                 </motion.div>
               </div>
-              
+
               <div className="flex-1">
                 <h3 className={`text-lg font-semibold ${
                   isActive ? 'text-purple-300' : isCompleted ? 'text-green-300' : 'text-gray-300'
                 }`}>
                   {step.title}
                 </h3>
-                <p className="text-gray-400 text-sm">
-                  {step.description}
-                </p>
+                <p className="text-gray-400 text-sm">{step.description}</p>
               </div>
 
               {isActive && (
-                <motion.div
-                  className="flex space-x-1"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
+                <motion.div className="flex space-x-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                   {[0, 1, 2].map((dot) => (
-                    <motion.div
-                      key={dot}
-                      className="w-2 h-2 bg-purple-400 rounded-full"
-                      animate={{ scale: [1, 1.5, 1] }}
-                      transition={{
-                        duration: 1,
-                        repeat: Infinity,
-                        delay: dot * 0.2,
-                      }}
-                    />
+                    <motion.div key={dot} className="w-2 h-2 bg-purple-400 rounded-full" animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 1, repeat: Infinity, delay: dot * 0.2 }} />
                   ))}
                 </motion.div>
               )}
 
               {isCompleted && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="text-green-400"
-                >
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-green-400">
                   <CheckCircle className="w-5 h-5" />
                 </motion.div>
               )}
@@ -243,19 +203,11 @@ const AIProcessor = ({ resume, jobDescription, onComplete, onError }: AIProcesso
       </div>
 
       {!isProcessing && !error && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mt-8"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mt-8">
           <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-6">
             <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-green-300 mb-2">
-              AI Processing Complete!
-            </h3>
-            <p className="text-gray-300">
-              Your tailored resume, cover letter, and interview prep are ready
-            </p>
+            <h3 className="text-xl font-semibold text-green-300 mb-2">AI Processing Complete!</h3>
+            <p className="text-gray-300">Your tailored resume, cover letter, and interview prep are ready</p>
           </div>
         </motion.div>
       )}

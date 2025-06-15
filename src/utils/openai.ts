@@ -1,122 +1,134 @@
-
-const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 export interface OpenAIMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
 }
 
+// Utility to trim long text safely
+function safeTrim(text: string, maxLength = 4000): string {
+  return text.length > maxLength ? text.slice(0, maxLength) : text;
+}
+
+// ✅ Vite-safe frontend API key usage
+const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+if (!apiKey) {
+  throw new Error('Missing GROQ API key. Define VITE_GROQ_API_KEY in your .env file.');
+}
+
+// 🔁 Retry helper with exponential backoff
+async function fetchWithRetry(url: string, options: RequestInit, retries = 3, delayMs = 3000): Promise<Response> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const response = await fetch(url, options);
+    
+    if (response.status !== 429) {
+      return response;
+    }
+
+    if (attempt < retries) {
+      console.warn(`Rate limited. Retry ${attempt + 1}/${retries} after ${delayMs}ms`);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    } else {
+      return response; // final attempt result
+    }
+  }
+
+  throw new Error('Max retries exceeded.');
+}
+
 export async function callOpenAI(messages: OpenAIMessage[]): Promise<string> {
-  const apiKey = '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';
-  
-  const response = await fetch(OPENROUTER_API_URL, {
+  const requestPayload = {
+    model: 'llama3-70b-8192',
+    messages,
+    temperature: 0.7,
+    max_tokens: 1000, // Safer default
+  };
+
+  const response = await fetchWithRetry(GROQ_API_URL, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
-      'HTTP-Referer': window.location.origin,
-      'X-Title': 'Resume Reviver'
     },
-    body: JSON.stringify({
-      model: 'anthropic/claude-3.5-sonnet',
-      messages,
-      temperature: 0.7,
-      max_tokens: 2000,
-    }),
+    body: JSON.stringify(requestPayload),
   });
 
   if (!response.ok) {
     const errorData = await response.text();
-    throw new Error(`OpenRouter API error: ${response.status} ${response.statusText} - ${errorData}`);
+    throw new Error(`Groq API error: ${response.status} ${response.statusText} - ${errorData}`);
   }
 
   const data = await response.json();
   return data.choices[0]?.message?.content || '';
 }
 
+// 🧠 Tailored Resume Prompt
 export function createResumePrompt(resume: string, jobDescription: string): OpenAIMessage[] {
+  const safeResume = safeTrim(resume, 3500);
+  const safeJobDescription = safeTrim(jobDescription, 2000);
+
   return [
     {
       role: 'system',
-      content: `You are an expert resume writer and career coach. Your task is to tailor resumes to specific job postings while maintaining authenticity and accuracy. 
-
-Guidelines:
-- Optimize for ATS (Applicant Tracking System) compatibility
-- Use keywords from the job description naturally
-- Enhance bullet points to highlight relevant experience
-- Maintain the original structure and truthfulness
-- Focus on quantifiable achievements when possible
-- Match the tone and language style of the job posting`
+      content: `You're an expert resume writer. Optimize resumes for job descriptions with ATS compatibility. Keep it truthful and impactful.`,
     },
     {
       role: 'user',
       content: `Please tailor this resume for the following job posting:
 
 JOB POSTING:
-${jobDescription}
+${safeJobDescription}
 
 ORIGINAL RESUME:
-${resume}
+${safeResume}
 
-Please provide an optimized version that better matches the job requirements while keeping all information truthful and accurate.`
-    }
+Please provide an optimized version that better matches the job requirements.`,
+    },
   ];
 }
 
+// ✍️ Cover Letter Prompt
 export function createCoverLetterPrompt(resume: string, jobDescription: string): OpenAIMessage[] {
+  const safeResume = safeTrim(resume, 3500);
+  const safeJobDescription = safeTrim(jobDescription, 2000);
+
   return [
     {
       role: 'system',
-      content: `You are an expert cover letter writer. Create compelling, personalized cover letters that connect the candidate's experience to the specific job requirements.
-
-Guidelines:
-- Keep it concise (3-4 paragraphs)
-- Extract company name and position title from job description
-- Highlight 2-3 key qualifications that match the role
-- Show enthusiasm and cultural fit
-- Use a professional yet engaging tone
-- Include a strong opening and clear call to action`
+      content: `You're an expert cover letter writer. Create concise, personalized cover letters that connect experience to job requirements. Use a professional and engaging tone.`,
     },
     {
       role: 'user',
-      content: `Create a cover letter for this job application:
+      content: `Create a cover letter for this job:
 
 JOB POSTING:
-${jobDescription}
+${safeJobDescription}
 
 CANDIDATE RESUME:
-${resume}
-
-Please write a compelling cover letter that connects the candidate's background to this specific opportunity.`
-    }
+${safeResume}`,
+    },
   ];
 }
 
+// 🎤 Interview Questions Prompt
 export function createInterviewQuestionsPrompt(jobDescription: string, resume: string): OpenAIMessage[] {
+  const safeResume = safeTrim(resume, 3500);
+  const safeJobDescription = safeTrim(jobDescription, 2000);
+
   return [
     {
       role: 'system',
-      content: `You are an expert interview coach. Generate realistic interview questions based on the job posting and provide personalized answers based on the candidate's background.
-
-Guidelines:
-- Create 5-6 diverse questions (behavioral, technical, situational)
-- Include common questions and role-specific ones
-- Provide STAR method answers when appropriate
-- Keep answers authentic to the candidate's experience
-- Include questions about company culture and the specific role
-- Format as JSON with question and answer fields`
+      content: `You're an interview coach. Generate 5-6 realistic questions with STAR-style answers based on the job and resume. Format as JSON with "question" and "answer".`,
     },
     {
       role: 'user',
-      content: `Generate interview questions and personalized answers for this scenario:
+      content: `Generate interview Q&A for:
 
 JOB POSTING:
-${jobDescription}
+${safeJobDescription}
 
-CANDIDATE RESUME:
-${resume}
-
-Please return a JSON array of objects with "question" and "answer" fields.`
-    }
+RESUME:
+${safeResume}`,
+    },
   ];
 }
