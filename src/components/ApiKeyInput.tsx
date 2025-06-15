@@ -10,7 +10,7 @@ interface ApiKeyInputProps {
 }
 
 const ApiKeyInput = ({ onApiKeySubmit }: ApiKeyInputProps) => {
-  const [apiKey, setApiKey] = useState('');
+  const [apiKey, setApiKey] = useState('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');
   const [showKey, setShowKey] = useState(false);
 
   const handleSubmit = () => {

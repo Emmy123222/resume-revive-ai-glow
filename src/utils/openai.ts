@@ -1,5 +1,5 @@
 
-const OPENAI_API_URL = 'https://api.openai.com/chat/completions';
+const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 export interface OpenAIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -14,7 +14,7 @@ export async function callOpenAI(messages: OpenAIMessage[], apiKey: string): Pro
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4-1106-preview',
+      model: 'gpt-4o',
       messages,
       temperature: 0.7,
       max_tokens: 2000,
@@ -22,7 +22,8 @@ export async function callOpenAI(messages: OpenAIMessage[], apiKey: string): Pro
   });
 
   if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.statusText}`);
+    const errorData = await response.text();
+    throw new Error(`OpenAI API error: ${response.status} ${response.statusText} - ${errorData}`);
   }
 
   const data = await response.json();
