@@ -25,6 +25,38 @@ const ResumeUpload = ({ onUpload }: ResumeUploadProps) => {
     }
   }, []);
 
+  const processFile = (file: File) => {
+    console.log('Processing file:', file.name, file.type);
+    setFileName(file.name);
+    
+    if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target?.result as string;
+        console.log('File text loaded:', text.substring(0, 100) + '...');
+        setResumeText(text);
+        setUploadMethod('drag');
+      };
+      reader.onerror = (error) => {
+        console.error('File reading error:', error);
+      };
+      reader.readAsText(file);
+    } else {
+      // For other file types, try to read as text anyway
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target?.result as string;
+        console.log('File text loaded (non-txt):', text.substring(0, 100) + '...');
+        setResumeText(text);
+        setUploadMethod('drag');
+      };
+      reader.onerror = (error) => {
+        console.error('File reading error:', error);
+      };
+      reader.readAsText(file);
+    }
+  };
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -33,35 +65,24 @@ const ResumeUpload = ({ onUpload }: ResumeUploadProps) => {
     const files = Array.from(e.dataTransfer.files);
     const file = files[0];
     
-    if (file && (file.type === 'text/plain' || file.name.endsWith('.txt'))) {
-      setFileName(file.name);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = event.target?.result as string;
-        setResumeText(text);
-        setUploadMethod('drag');
-      };
-      reader.readAsText(file);
+    if (file) {
+      processFile(file);
     }
   }, []);
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && (file.type === 'text/plain' || file.name.endsWith('.txt'))) {
-      setFileName(file.name);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = event.target?.result as string;
-        setResumeText(text);
-        setUploadMethod('drag');
-      };
-      reader.readAsText(file);
+    if (file) {
+      processFile(file);
     }
   };
 
   const handleSubmit = () => {
     if (resumeText.trim()) {
+      console.log('Submitting resume text:', resumeText.substring(0, 100) + '...');
       onUpload(resumeText);
+    } else {
+      console.log('No resume text to submit');
     }
   };
 
@@ -119,13 +140,13 @@ const ResumeUpload = ({ onUpload }: ResumeUploadProps) => {
                   or click to browse files
                 </p>
                 <p className="text-sm text-gray-500">
-                  Supports .txt files for now
+                  Supports .txt, .pdf, .doc files
                 </p>
               </motion.div>
               <input
                 id="file-input"
                 type="file"
-                accept=".txt"
+                accept=".txt,.pdf,.doc,.docx"
                 onChange={handleFileInput}
                 className="hidden"
               />
