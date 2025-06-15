@@ -1,20 +1,24 @@
 
-const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 export interface OpenAIMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
 }
 
-export async function callOpenAI(messages: OpenAIMessage[], apiKey: string): Promise<string> {
-  const response = await fetch(OPENAI_API_URL, {
+export async function callOpenAI(messages: OpenAIMessage[]): Promise<string> {
+  const apiKey = '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';
+  
+  const response = await fetch(OPENROUTER_API_URL, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
+      'HTTP-Referer': window.location.origin,
+      'X-Title': 'Resume Reviver'
     },
     body: JSON.stringify({
-      model: 'gpt-4o',
+      model: 'anthropic/claude-3.5-sonnet',
       messages,
       temperature: 0.7,
       max_tokens: 2000,
@@ -23,7 +27,7 @@ export async function callOpenAI(messages: OpenAIMessage[], apiKey: string): Pro
 
   if (!response.ok) {
     const errorData = await response.text();
-    throw new Error(`OpenAI API error: ${response.status} ${response.statusText} - ${errorData}`);
+    throw new Error(`OpenRouter API error: ${response.status} ${response.statusText} - ${errorData}`);
   }
 
   const data = await response.json();

@@ -7,12 +7,11 @@ import { Button } from '@/components/ui/button';
 interface AIProcessorProps {
   resume: string;
   jobDescription: string;
-  apiKey: string;
   onComplete: (tailoredResume: string, coverLetter: string, interviewQuestions: Array<{question: string, answer: string}>) => void;
   onError: (error: string) => void;
 }
 
-const AIProcessor = ({ resume, jobDescription, apiKey, onComplete, onError }: AIProcessorProps) => {
+const AIProcessor = ({ resume, jobDescription, onComplete, onError }: AIProcessorProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isProcessing, setIsProcessing] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +29,7 @@ const AIProcessor = ({ resume, jobDescription, apiKey, onComplete, onError }: AI
     },
     {
       icon: MessageSquare,
-      title: "Generating Cover Letter",
+      title: "Generating Cover Letter", 
       description: "Creating a personalized cover letter that highlights your relevant experience"
     },
     {
@@ -53,21 +52,21 @@ const AIProcessor = ({ resume, jobDescription, apiKey, onComplete, onError }: AI
         setCurrentStep(1);
         console.log('Tailoring resume...');
         const resumePrompt = createResumePrompt(resume, jobDescription);
-        const tailoredResume = await callOpenAI(resumePrompt, apiKey);
+        const tailoredResume = await callOpenAI(resumePrompt);
         console.log('Resume tailored successfully');
 
         // Step 3: Generate Cover Letter
         setCurrentStep(2);
         console.log('Generating cover letter...');
         const coverLetterPrompt = createCoverLetterPrompt(resume, jobDescription);
-        const coverLetter = await callOpenAI(coverLetterPrompt, apiKey);
+        const coverLetter = await callOpenAI(coverLetterPrompt);
         console.log('Cover letter generated successfully');
 
         // Step 4: Generate Interview Questions
         setCurrentStep(3);
         console.log('Generating interview questions...');
         const questionsPrompt = createInterviewQuestionsPrompt(jobDescription, resume);
-        const questionsResponse = await callOpenAI(questionsPrompt, apiKey);
+        const questionsResponse = await callOpenAI(questionsPrompt);
         
         // Parse JSON response
         let interviewQuestions;
@@ -104,7 +103,7 @@ const AIProcessor = ({ resume, jobDescription, apiKey, onComplete, onError }: AI
     };
 
     processWithAI();
-  }, [resume, jobDescription, apiKey, onComplete, onError]);
+  }, [resume, jobDescription, onComplete, onError]);
 
   const retry = () => {
     setError(null);
