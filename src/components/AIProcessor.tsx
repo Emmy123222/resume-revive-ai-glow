@@ -1,23 +1,27 @@
-
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Brain, FileText, MessageSquare, CheckCircle } from 'lucide-react';
+import { Sparkles, Brain, FileText, MessageSquare, CheckCircle, AlertTriangle } from 'lucide-react';
+import { callOpenAI, createResumePrompt, createCoverLetterPrompt, createInterviewQuestionsPrompt } from '../utils/openai';
+import { Button } from '@/components/ui/button';
 
 interface AIProcessorProps {
   resume: string;
   jobDescription: string;
+  apiKey: string;
   onComplete: (tailoredResume: string, coverLetter: string, interviewQuestions: Array<{question: string, answer: string}>) => void;
+  onError: (error: string) => void;
 }
 
-const AIProcessor = ({ resume, jobDescription, onComplete }: AIProcessorProps) => {
+const AIProcessor = ({ resume, jobDescription, apiKey, onComplete, onError }: AIProcessorProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isProcessing, setIsProcessing] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const processingSteps = [
     {
       icon: Brain,
       title: "Analyzing Job Requirements",
-      description: "Extracting key skills, qualifications, and keywords from the job posting"
+      description: "AI is extracting key skills, qualifications, and keywords from the job posting"
     },
     {
       icon: FileText,
@@ -37,87 +41,99 @@ const AIProcessor = ({ resume, jobDescription, onComplete }: AIProcessorProps) =
   ];
 
   useEffect(() => {
-    const processResume = async () => {
-      // Simulate AI processing with realistic timing
-      const stepDurations = [2000, 3000, 2500, 2000];
-      
-      for (let i = 0; i < processingSteps.length; i++) {
-        setCurrentStep(i);
-        await new Promise(resolve => setTimeout(resolve, stepDurations[i]));
+    const processWithAI = async () => {
+      try {
+        console.log('Starting AI processing...');
+        
+        // Step 1: Analyze (just for UX, no actual API call needed)
+        setCurrentStep(0);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Step 2: Tailor Resume
+        setCurrentStep(1);
+        console.log('Tailoring resume...');
+        const resumePrompt = createResumePrompt(resume, jobDescription);
+        const tailoredResume = await callOpenAI(resumePrompt, apiKey);
+        console.log('Resume tailored successfully');
+
+        // Step 3: Generate Cover Letter
+        setCurrentStep(2);
+        console.log('Generating cover letter...');
+        const coverLetterPrompt = createCoverLetterPrompt(resume, jobDescription);
+        const coverLetter = await callOpenAI(coverLetterPrompt, apiKey);
+        console.log('Cover letter generated successfully');
+
+        // Step 4: Generate Interview Questions
+        setCurrentStep(3);
+        console.log('Generating interview questions...');
+        const questionsPrompt = createInterviewQuestionsPrompt(jobDescription, resume);
+        const questionsResponse = await callOpenAI(questionsPrompt, apiKey);
+        
+        // Parse JSON response
+        let interviewQuestions;
+        try {
+          interviewQuestions = JSON.parse(questionsResponse);
+        } catch (parseError) {
+          console.log('Failed to parse JSON, using fallback questions');
+          // Fallback if JSON parsing fails
+          interviewQuestions = [
+            {
+              question: "Tell me about yourself and your relevant experience.",
+              answer: "Based on your resume, highlight your key experiences that align with this role."
+            },
+            {
+              question: "Why are you interested in this position?",
+              answer: "Express genuine interest in the role and company based on the job description."
+            }
+          ];
+        }
+
+        console.log('Interview questions generated successfully');
+
+        setIsProcessing(false);
+        setTimeout(() => {
+          onComplete(tailoredResume, coverLetter, interviewQuestions);
+        }, 1000);
+
+      } catch (error) {
+        console.error('AI processing error:', error);
+        setError(error instanceof Error ? error.message : 'An unexpected error occurred');
+        setIsProcessing(false);
+        onError(error instanceof Error ? error.message : 'AI processing failed');
       }
-
-      // Generate mock results (in a real app, this would call OpenAI API)
-      const tailoredResume = generateTailoredResume(resume, jobDescription);
-      const coverLetter = generateCoverLetter(resume, jobDescription);
-      const interviewQuestions = generateInterviewQuestions(jobDescription);
-
-      setIsProcessing(false);
-      setTimeout(() => {
-        onComplete(tailoredResume, coverLetter, interviewQuestions);
-      }, 1000);
     };
 
-    processResume();
-  }, [resume, jobDescription, onComplete]);
+    processWithAI();
+  }, [resume, jobDescription, apiKey, onComplete, onError]);
 
-  const generateTailoredResume = (originalResume: string, jobDesc: string): string => {
-    // This is a mock implementation - in production, you'd use GPT-4
-    const keywords = ['React', 'TypeScript', 'Python', 'Leadership', 'Agile', 'CI/CD'];
-    let tailored = originalResume;
-    
-    // Add some mock enhancements
-    tailored = tailored.replace(/Software Engineer/g, 'Senior Software Engineer');
-    tailored += '\n\n• Enhanced application performance by implementing modern React patterns and TypeScript best practices';
-    tailored += '\n• Led cross-functional team of 5 developers in Agile environment, delivering projects 20% ahead of schedule';
-    
-    return tailored;
+  const retry = () => {
+    setError(null);
+    setCurrentStep(0);
+    setIsProcessing(true);
+    // The useEffect will re-run the processing
   };
 
-  const generateCoverLetter = (resume: string, jobDesc: string): string => {
-    return `Dear Hiring Manager,
-
-I am writing to express my strong interest in the position at your company. After reviewing the job description, I am excited about the opportunity to contribute to your team's success.
-
-With my background in software development and proven track record of delivering high-quality solutions, I am confident I would be a valuable addition to your organization. My experience includes:
-
-• Developing scalable web applications using modern frameworks
-• Leading technical projects and mentoring junior developers  
-• Collaborating with cross-functional teams to deliver exceptional user experiences
-
-I am particularly drawn to this role because it aligns perfectly with my passion for innovative technology solutions and my desire to work in a collaborative environment.
-
-I would welcome the opportunity to discuss how my skills and enthusiasm can contribute to your team's continued success.
-
-Thank you for your consideration.
-
-Best regards,
-[Your Name]`;
-  };
-
-  const generateInterviewQuestions = (jobDesc: string): Array<{question: string, answer: string}> => {
-    return [
-      {
-        question: "Tell me about yourself and your relevant experience.",
-        answer: "I'm a passionate software engineer with 5+ years of experience building scalable web applications. I've worked with modern technologies like React, TypeScript, and Python, and I'm particularly skilled at collaborating with cross-functional teams to deliver high-quality products that meet both technical and business requirements."
-      },
-      {
-        question: "Why are you interested in this position and our company?",
-        answer: "I'm excited about this opportunity because it combines my technical expertise with my passion for innovation. Your company's commitment to cutting-edge technology and collaborative culture aligns perfectly with my career goals. I'm particularly interested in how I can contribute to your team's mission of delivering exceptional user experiences."
-      },
-      {
-        question: "Describe a challenging project you've worked on and how you overcame obstacles.",
-        answer: "I recently led a project to migrate a legacy system to a modern architecture. The main challenge was maintaining system uptime while implementing significant changes. I created a phased migration plan, implemented comprehensive testing, and coordinated closely with stakeholders. The project was completed on time with zero downtime and resulted in 40% improved performance."
-      },
-      {
-        question: "How do you stay current with new technologies and industry trends?",
-        answer: "I'm committed to continuous learning through multiple channels: I follow industry blogs and newsletters, participate in online communities, attend conferences when possible, and work on personal projects to experiment with new technologies. I also believe in sharing knowledge with my team through tech talks and code reviews."
-      },
-      {
-        question: "Do you have any questions for us?",
-        answer: "Yes, I'd love to learn more about the team dynamics and collaboration style. What does a typical day look like for someone in this role? Also, what are the biggest challenges the team is currently facing, and how would this position help address them?"
-      }
-    ];
-  };
+  if (error) {
+    return (
+      <div className="max-w-3xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-red-400" />
+          <h2 className="text-2xl font-bold text-white mb-4">Processing Failed</h2>
+          <p className="text-gray-300 mb-6">{error}</p>
+          <Button
+            onClick={retry}
+            className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600"
+          >
+            Try Again
+          </Button>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -142,7 +158,7 @@ Best regards,
         </div>
         <h2 className="text-3xl font-bold text-white mb-4">AI is Working Its Magic</h2>
         <p className="text-gray-300 text-lg">
-          Our AI is analyzing your resume and tailoring it for the perfect match
+          Real AI is analyzing your resume and tailoring it for the perfect match
         </p>
       </motion.div>
 
@@ -227,7 +243,7 @@ Best regards,
         })}
       </div>
 
-      {!isProcessing && (
+      {!isProcessing && !error && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -236,7 +252,7 @@ Best regards,
           <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-6">
             <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-green-300 mb-2">
-              Processing Complete!
+              AI Processing Complete!
             </h3>
             <p className="text-gray-300">
               Your tailored resume, cover letter, and interview prep are ready
