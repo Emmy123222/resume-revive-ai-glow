@@ -88,16 +88,7 @@ Built with 💜 for the [3percentclub Hackathon](https://www.the3percentmovement
 
 ---
 
-## 🏆 Submission Info
-
-- **Team Size:** [Insert your team size]
-- **Hackathon Track:** Vibe Coding for Social Impact
-- **Theme:** Equitable access to high-quality career tools
-- **Demo Video:** [Insert YouTube or Loom video link]
-- **Live App:** [Insert deployed app link]
-- **Contact:** [Your email or Twitter/X handle]
-
----
+#
 
 
 ---
