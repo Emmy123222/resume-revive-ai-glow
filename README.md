@@ -65,11 +65,10 @@ Built with 💜 for the [3percentclub Hackathon](https://www.the3percentmovement
 ## 🧑‍💻 Tech Stack
 
 - **Frontend:** React + TailwindCSS
-- **Backend:** Next.js (with API routes)
 - **AI Engine:** Grok AI (via xAI) – resume rewriting, letter generation, interview Q&A
 - **Voice Mode:** Whisper (for transcription) + Grok feedback
 - **PDF Export:** `html2pdf.js` or custom HTML-to-PDF conversion
-- **Hosting:** Vercel (preferred), fallback: Netlify
+- **Hosting:**  Netlify
 
 ---
 
@@ -100,11 +99,6 @@ Built with 💜 for the [3percentclub Hackathon](https://www.the3percentmovement
 
 ---
 
-## 🙌 Credits
-
-Created by [Your Name or Team]  
-Powered by **Grok AI** via xAI  
-Built at the **3percentclub Hackathon 2025** 🧠💼
 
 ---
 
